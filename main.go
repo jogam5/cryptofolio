@@ -17,9 +17,9 @@ import (
 	"github.com/bitfinexcom/bitfinex-api-go/v2/rest"
 	"time"
 	//"gopkg.in/Iwark/spreadsheet.v2"
+	"cryptofolio/client"
+	"cryptofolio/spreadsheet"
 	"log"
-	"portfolio/client"
-	"portfolio/spreadsheet"
 )
 
 func checkError(err error) {

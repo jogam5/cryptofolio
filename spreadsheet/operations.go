@@ -2,9 +2,9 @@ package spreadsheet
 
 import (
 	"bufio"
+	"cryptofolio/models"
 	"encoding/csv"
 	"fmt"
-	"portfolio/models"
 	"time"
 	//"gabriel/spreadsh"
 	//"github.com/bitfinexcom/bitfinex-api-go/v1"
