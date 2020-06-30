@@ -1,6 +1,7 @@
 package models
 
 type Trade struct {
+	Id       int
 	Coin     string
 	Base     string
 	Exchange string
@@ -18,3 +19,9 @@ type Trade struct {
 	Profit   string
 	Status   string
 }
+
+type ById []Trade
+
+func (a ById) Len() int           { return len(a) }
+func (a ById) Less(i, j int) bool { return a[i].Id < a[j].Id }
+func (a ById) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
