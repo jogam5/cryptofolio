@@ -4,42 +4,67 @@ import (
 	"bufio"
 	"cryptofolio/models"
 	"encoding/csv"
-	"fmt"
-	"time"
-	//"gabriel/spreadsh"
-	//"github.com/bitfinexcom/bitfinex-api-go/v1"
-	//"golang.org/x/net/context"
-	//"golang.org/x/oauth2/google"
 	"gopkg.in/Iwark/spreadsheet.v2"
 	"io"
+	"io/ioutil"
+	"log"
 	"os"
 	"path/filepath"
+	"sort"
+	"strings"
+	"time"
 )
 
+/*
+==
+Find csv file in 'downloads' folder
+==
+*/
+func FindTradesFile() string {
+	path := "/Users/gabriel/downloads/"
+	var result string
+	files, err := ioutil.ReadDir(path)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	for _, file := range files {
+		if strings.Contains(file.Name(), "jogam6") {
+			result = file.Name()
+		}
+	}
+	return result
+}
+
+/*
+==
+Return a struct of Trade objects after
+parsing a CSV file
+==
+*/
 func ReadCsv() []models.Trade {
 	/* 1. Fetch trades from CSV */
+	path := "/Users/gabriel/downloads/"
 	trades := []models.Trade{}
-	path := "/Users/gabo/downloads/"
-	today := time.Now().Format("2006-01-02") + "-trades.csv"
-	f := filepath.Join(path, today)
-	file, _ := os.Open(f)
-	reader := csv.NewReader(bufio.NewReader(file))
+	file := FindTradesFile()
+	log.Println(file)
+	file = filepath.Join(path, file)
+	fileReader, _ := os.Open(file)
+	reader := csv.NewReader(bufio.NewReader(fileReader))
+	id := 1
 	/* 2. Loop over trades */
 	for {
 		line, err := reader.Read()
-		//fmt.Println(line)
+		log.Println(line)
 		if err == io.EOF {
 			break
 		}
-		if line[0] == "#" {
-			// refactor
-			//fmt.Println("go on")
-			continue
-		} else {
-			//fmt.Println("loop")
-			/* Store trades */
+		log.Println(line)
+		/* Skip header of file */
+		if line[0] != "#" {
+			/* 3. Store trades */
 			var t models.Trade
 			t = models.Trade{
+				Id:       id,
 				Coin:     line[1][0:3],
 				Base:     line[1][4:7],
 				Exchange: "BFX",
@@ -51,13 +76,19 @@ func ReadCsv() []models.Trade {
 				Status:   "BUY",
 			}
 			trades = append(trades, t)
+			id = id + 1
 		}
 	}
+	sort.Sort(sort.Reverse(models.ById(trades)))
 	return trades
 }
 
+/*
+==
+Receive trades objects and write them in spreadsheet
+==
+*/
 func WriteCsv(trades []models.Trade, sheet *spreadsheet.Sheet) {
-	/* Write trades once read from CSV */
 	beginRow := int(ReturnLastCell(0, sheet).Row) + 1
 	for _, trade := range trades {
 		toFind := trade.UUID
@@ -69,7 +100,7 @@ func WriteCsv(trades []models.Trade, sheet *spreadsheet.Sheet) {
 				for _, cell := range row {
 					if cell.Value == toFind {
 						found = true
-						fmt.Println("Trade already stored")
+						log.Println("Trade already stored")
 					}
 				}
 			}

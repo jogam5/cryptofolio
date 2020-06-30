@@ -33,7 +33,6 @@ func FetchPairs(sheet *spreadsheet.Sheet, exchange string) []models.Pair {
 			}
 		}
 	}
-	log.Println(pairs)
 	return pairs
 }
 
