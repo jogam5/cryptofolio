@@ -17,6 +17,17 @@ import (
 
 /*
 ==
+Check error generic function
+==
+*/
+func checkError(err error) {
+	if err != nil {
+		panic(err.Error())
+	}
+}
+
+/*
+==
 Find csv file in 'downloads' folder
 ==
 */
@@ -122,4 +133,38 @@ func WriteCsv(trades []models.Trade, sheet *spreadsheet.Sheet) {
 	today := time.Now()
 	sheet.Update(0, 19, today.Format("01-02-2006 15:04:05"))
 	sheet.Synchronize()
+}
+
+/*
+==
+Move SOLD trades from spreadsheet origin to destination
+==
+*/
+func MoveTrades(statusCol uint, sheetFrom *spreadsheet.Sheet, sheetTo *spreadsheet.Sheet) {
+	/* Fetch and move sold trades */
+	log.Println("Moving trades")
+	beginRow := int(ReturnLastCell(0, sheetTo).Row) + 1
+	deleteTrades := []int{}
+	for _, cell := range sheetFrom.Columns[statusCol] {
+		if cell.Value == "SOLD" {
+			row := sheetFrom.Rows[cell.Row]
+			deleteTrades = append(deleteTrades, int(row[0].Row))
+
+			for i := 0; i < 17; i++ {
+				sheetTo.Update(beginRow, i, row[i].Value)
+			}
+			beginRow += 1
+		}
+	}
+	sheetTo.Synchronize()
+
+	/* Reverse the order of trades */
+	sort.Sort(sort.Reverse(sort.IntSlice(deleteTrades)))
+
+	/* Delete rows already moved */
+	for _, v := range deleteTrades {
+		err := sheetFrom.DeleteRows(v, v+1)
+		checkError(err)
+	}
+	sheetFrom.Synchronize()
 }
