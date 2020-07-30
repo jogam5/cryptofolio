@@ -2,7 +2,6 @@ package client
 
 import (
 	"github.com/bitfinexcom/bitfinex-api-go/v2/rest"
-	//"log"
 	"os"
 )
 

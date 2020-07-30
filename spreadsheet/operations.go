@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"cryptofolio/models"
 	"encoding/csv"
+	"github.com/bitfinexcom/bitfinex-api-go/v2/rest"
 	"gopkg.in/Iwark/spreadsheet.v2"
 	"io"
 	"io/ioutil"
@@ -167,4 +168,27 @@ func MoveTrades(statusCol uint, sheetFrom *spreadsheet.Sheet, sheetTo *spreadshe
 		checkError(err)
 	}
 	sheetFrom.Synchronize()
+}
+
+/*
+==
+Fetch current price from Bitfinex and update table
+==
+*/
+func UpdatePrice(bitfinex *rest.Client, pairs []models.Pair, sheet *spreadsheet.Sheet) {
+	i := 1
+	for _, v := range pairs {
+		pair := "t" + v.Coin + v.Base
+		log.Println(pair)
+		r, e := bitfinex.Tickers.Get(pair)
+		checkError(e)
+		sheet.Update(v.Row, 12, ToS(r.LastPrice))
+		i += 1
+		if i%29 == 0 {
+			time.Sleep(45 * time.Second)
+		}
+	}
+	today := time.Now()
+	sheet.Update(0, 24, today.Format("01-02-2006 15:04:05"))
+	sheet.Synchronize()
 }
