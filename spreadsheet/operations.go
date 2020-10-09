@@ -84,7 +84,7 @@ func ReadCsv() []models.Trade {
 				BuyRate:  line[3],
 				UUID:     line[0],
 				BuyFee:   line[4],
-				Date:     line[6],
+				Date:     line[7],
 				Status:   "BUY",
 			}
 			trades = append(trades, t)
@@ -100,34 +100,40 @@ func ReadCsv() []models.Trade {
 Receive trades objects and write them in spreadsheet
 ==
 */
-func WriteCsv(trades []models.Trade, sheet *spreadsheet.Sheet) {
+func WriteCsv(trades []models.Trade, sheet *spreadsheet.Sheet, soldSheet *spreadsheet.Sheet) {
 	beginRow := int(ReturnLastCell(0, sheet).Row) + 1
 	for _, trade := range trades {
 		toFind := trade.UUID
-		sign := ToF(trade.Units)
-		if sign > 0 {
-			/* Only BUY trades */
-			found := false
-			for _, row := range sheet.Rows {
-				for _, cell := range row {
-					if cell.Value == toFind {
-						found = true
-						log.Println("Trade already stored")
+		/* Check if trade is in Sold tab */
+		moved, _ := FindValue(soldSheet, toFind)
+		if moved {
+			log.Println("Trade closed and moved")
+		} else {
+			sign := ToF(trade.Units)
+			if sign > 0 {
+				/* Only BUY trades */
+				found := false
+				for _, row := range sheet.Rows {
+					for _, cell := range row {
+						if cell.Value == toFind {
+							found = true
+							log.Println("Trade already stored")
+						}
 					}
 				}
-			}
-			if found == false {
-				/* Write new trade */
-				sheet.Update(beginRow, 0, trade.Coin)
-				sheet.Update(beginRow, 1, trade.Base)
-				sheet.Update(beginRow, 2, trade.Exchange)
-				sheet.Update(beginRow, 3, trade.Date)
-				sheet.Update(beginRow, 4, trade.Status)
-				sheet.Update(beginRow, 5, trade.Units)
-				sheet.Update(beginRow, 6, trade.BuyRate)
-				sheet.Update(beginRow, 7, trade.UUID)
-				sheet.Update(beginRow, 8, trade.BuyFee)
-				beginRow += 1
+				if found == false {
+					/* Write new trade */
+					sheet.Update(beginRow, 0, trade.Coin)
+					sheet.Update(beginRow, 1, trade.Base)
+					sheet.Update(beginRow, 2, trade.Exchange)
+					sheet.Update(beginRow, 3, trade.Date)
+					sheet.Update(beginRow, 4, trade.Status)
+					sheet.Update(beginRow, 5, trade.Units)
+					sheet.Update(beginRow, 6, trade.BuyRate)
+					sheet.Update(beginRow, 7, trade.UUID)
+					sheet.Update(beginRow, 8, trade.BuyFee)
+					beginRow += 1
+				}
 			}
 		}
 	}
@@ -172,6 +178,15 @@ func MoveTrades(statusCol uint, sheetFrom *spreadsheet.Sheet, sheetTo *spreadshe
 
 /*
 ==
+Check if trade is in Sold tab
+==
+*/
+func CheckSold() {
+
+}
+
+/*
+==
 Fetch current price from Bitfinex and update table
 ==
 */
@@ -185,7 +200,7 @@ func UpdatePrice(bitfinex *rest.Client, pairs []models.Pair, sheet *spreadsheet.
 		sheet.Update(v.Row, 12, ToS(r.LastPrice))
 		i += 1
 		if i%29 == 0 {
-			time.Sleep(45 * time.Second)
+			time.Sleep(50 * time.Second)
 		}
 	}
 	today := time.Now()

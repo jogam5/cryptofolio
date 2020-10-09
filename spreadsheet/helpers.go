@@ -36,6 +36,26 @@ func FetchPairs(sheet *spreadsheet.Sheet, exchange string) []models.Pair {
 	return pairs
 }
 
+/*
+==
+Find a specific value in the spreadsheet and return a cell
+==
+*/
+
+func FindValue(sheet *spreadsheet.Sheet, value string) (bool, spreadsheet.Cell) {
+	var cellFound spreadsheet.Cell
+	var found bool
+	for _, row := range sheet.Rows {
+		for _, cell := range row {
+			if cell.Value == value {
+				cellFound = cell
+				found = true
+			}
+		}
+	}
+	return found, cellFound
+}
+
 func ReturnLastCell(colNumber uint, sheet *spreadsheet.Sheet) spreadsheet.Cell {
 	/* Returns a last not null cell of a specific column */
 	var last spreadsheet.Cell
