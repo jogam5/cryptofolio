@@ -63,6 +63,8 @@ func ReadCsv() []models.Trade {
 	fileReader, _ := os.Open(file)
 	reader := csv.NewReader(bufio.NewReader(fileReader))
 	id := 1
+	coinName := ""
+	baseName := ""
 	/* 2. Loop over trades */
 	for {
 		line, err := reader.Read()
@@ -75,10 +77,17 @@ func ReadCsv() []models.Trade {
 		if line[0] != "#" {
 			/* 3. Store trades */
 			var t models.Trade
+			if line[1][0:3] == "LIN" {
+				coinName = "LINK:"//line[1][0:4]
+				baseName = line[1][5:8]
+			} else {
+				coinName = line[1][0:3]
+				baseName = line[1][4:7]
+			}
 			t = models.Trade{
 				Id:       id,
-				Coin:     line[1][0:3],
-				Base:     line[1][4:7],
+				Coin:     coinName,
+				Base:     baseName,
 				Exchange: "BFX",
 				Units:    line[2],
 				BuyRate:  line[3],
