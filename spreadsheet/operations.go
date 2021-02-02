@@ -78,7 +78,7 @@ func ReadCsv() []models.Trade {
 			/* 3. Store trades */
 			var t models.Trade
 			if line[1][0:3] == "LIN" {
-				coinName = "LINK:"//line[1][0:4]
+				coinName = "LINK:" //line[1][0:4]
 				baseName = line[1][5:8]
 			} else {
 				coinName = line[1][0:3]
@@ -147,7 +147,7 @@ func WriteCsv(trades []models.Trade, sheet *spreadsheet.Sheet, soldSheet *spread
 		}
 	}
 	today := time.Now()
-	sheet.Update(0, 19, today.Format("01-02-2006 15:04:05"))
+	sheet.Update(0, 24, today.Format("01-02-2006 15:04:05"))
 	sheet.Synchronize()
 }
 
